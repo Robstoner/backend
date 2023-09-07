@@ -18,7 +18,7 @@ console.log(user)
   res.json(user);
 });
 
-router.post("/update/:slug", passport.authenticate("jwt", { session : false }), async (req, res) => {
+router.put("/update/:slug", passport.authenticate("jwt", { session : false }), async (req, res) => {
   const { slug } = req.params;
 
   const user = await updateUser(slug, req.body);
