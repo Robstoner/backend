@@ -1,0 +1,39 @@
+# database
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+# db
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:3306/${MYSQL_DATABASE:spring_example}
+    username: root
+    password: 
+    driver-class-name: com.mysql.cj.jdbc.Driver
+# multipart
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 5MB
+      max-request-size: 20MB
+# oauth2
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: nds
+            client-secret: nds
+server:
+  error:
+    include-message: always
+    include-binding-errors: always
+
+# aws credentials
+# aws:
+#   region: eu-west-1
+#   access:
+#     key: xxx
+#     secret: 
+#       key: xxx
+#   bucket:
+#     name: xxx
