@@ -38,6 +38,7 @@ interface IUserModel extends Model<IUserDocument> {
     slug: string,
     values: Record<string, any>
   ): Promise<IUserDocument>;
+  deleteUserBySlug(slug: string): Promise<IUserDocument>;
   addTokenByEmail(email: string, token: string): Promise<IUserDocument>;
   addToken(id: string, token: string): Promise<IUserDocument>;
 }
@@ -165,6 +166,10 @@ UserSchema.statics.updateUserBySlug = function updateUserBySlug(
   values: Record<string, any>
 ) {
   return this.findOneAndUpdate({ slug }, values);
+};
+
+UserSchema.statics.deleteUserBySlug = function deleteUserBySlug(slug: string) {
+  return this.findOneAndDelete({ slug });
 };
 
 UserSchema.statics.addTokenByEmail = function addTokenByEmail(

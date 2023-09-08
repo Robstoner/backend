@@ -14,3 +14,7 @@ export async function getUser(slug: string) {
 export async function updateUser(slug: string, values: Record<string, any>) {
   return UserModel.updateUserBySlug(slug, values);
 }
+
+export async function deleteUser(slug: string) {
+  return UserModel.deleteUserBySlug(slug);
+}
