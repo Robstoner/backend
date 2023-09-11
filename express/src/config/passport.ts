@@ -1,23 +1,27 @@
-import passport from "passport";
+import passport from 'passport';
+import { Request } from 'express';
+import dotenv from 'dotenv';
 
-import { IUser, UserModel } from "../users/users.model";
-import { Strategy as LocalStrategy } from "passport-local";
-import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+import { IUser, UserModel } from '../users/users.model';
+import { Strategy as LocalStrategy } from 'passport-local';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import {
   ExtractJwt,
   Strategy as JwtStrategy,
   StrategyOptions,
   VerifiedCallback,
-} from "passport-jwt";
-import { JwtPayload } from "jsonwebtoken";
-import { Request } from "express";
+} from 'passport-jwt';
+import { JwtPayload } from 'jsonwebtoken';
+import env from './env';
+
+dotenv.config();
 
 passport.use(
-  "signup",
+  'signup',
   new LocalStrategy(
     {
-      usernameField: "email",
-      passwordField: "password",
+      usernameField: 'email',
+      passwordField: 'password',
       passReqToCallback: true,
     },
     async function verify(req: Request, email: string, password: string, done) {
@@ -26,7 +30,7 @@ passport.use(
         const userExists = await UserModel.findOne({ email });
 
         if (userExists) {
-          return done(null, false, { message: "User already exists" });
+          return done(null, false, { message: 'User already exists' });
         }
 
         const user = await UserModel.createUser({
@@ -40,39 +44,39 @@ passport.use(
       } catch (error) {
         done(error);
       }
-    }
-  )
+    },
+  ),
 );
 
 passport.use(
-  "password",
+  'password',
   new LocalStrategy(
-    { usernameField: "email", passwordField: "password" },
+    { usernameField: 'email', passwordField: 'password' },
     async function verify(email: string, password: string, done) {
       try {
-        const user = await UserModel.findOne({ email }).select("+password");
+        const user = await UserModel.findOne({ email }).select('+password');
 
         if (!user) {
-          return done(null, false, { message: "User not found" });
+          return done(null, false, { message: 'User not found' });
         }
 
         const isValid = await user.checkPassword(password);
 
         if (!isValid) {
-          return done(null, false, { message: "Invalid password" });
+          return done(null, false, { message: 'Invalid password' });
         }
 
         return done(null, user as IUser);
       } catch (error) {
         return done(error);
       }
-    }
-  )
+    },
+  ),
 );
 
 const options: StrategyOptions = {
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-  secretOrKey: process.env.JWT_SECRET,
+  secretOrKey: env.jwtSecret,
   passReqToCallback: true,
 };
 
@@ -80,39 +84,39 @@ passport.use(
   new JwtStrategy(options, async function (
     req: Request,
     jwt_payload: JwtPayload,
-    done: VerifiedCallback
+    done: VerifiedCallback,
   ) {
-    const user = await UserModel.getUserByEmail(jwt_payload.email, "+tokens");
+    const user = await UserModel.getUserByEmail(jwt_payload.email, '+tokens');
 
     if (!user) {
-      return done(null, false, { message: "User not found" });
+      return done(null, false, { message: 'User not found' });
     }
 
-    const headerToken = req.headers.authorization?.split(" ")[1];
+    const headerToken = req.headers.authorization?.split(' ')[1];
 
     const userToken = user.tokens?.find((value) => value.token === headerToken);
 
     if (!userToken || !userToken.isValid) {
-      return done(null, false, { message: "Invalid token" });
+      return done(null, false, { message: 'Invalid token' });
     }
 
     if (userToken.expires < new Date()) {
       userToken.isValid = false;
       user.save();
 
-      return done(null, false, { message: "Token expired" });
+      return done(null, false, { message: 'Token expired' });
     }
 
     return done(null, user);
-  })
+  }),
 );
 
 passport.use(
   new GoogleStrategy(
     {
-      clientID: process.env.GOOGLE_CLIENT_ID as string,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-      callbackURL: process.env.GOOGLE_CALLBACK_URL as string,
+      clientID: env.google.clientID,
+      clientSecret: env.google.clientSecret,
+      callbackURL: env.google.callbackURL,
     },
     async function (accessToken, refreshToken, profile, done) {
       const userProfile = await UserModel.findOne({
@@ -120,7 +124,7 @@ passport.use(
       });
 
       if (!userProfile) {
-        console.log("no provider");
+        console.log('no provider');
         const userEmail = await UserModel.findOne({
           email: profile.emails?.[0].value,
         });
@@ -143,7 +147,7 @@ passport.use(
             lastName: profile.name?.familyName
               ? profile.name?.familyName
               : profile.displayName,
-            slug: "google" + profile.id,
+            slug: 'google' + profile.id,
             providers: [
               {
                 providerId: profile.id,
@@ -157,8 +161,8 @@ passport.use(
       }
 
       return done(null, userProfile);
-    }
-  )
+    },
+  ),
 );
 
 export default passport;

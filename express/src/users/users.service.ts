@@ -1,11 +1,11 @@
-import { UserModel } from "./users.model";
+import { UserModel } from './users.model';
 
 export async function getUsers() {
   return UserModel.getUsers();
 }
 
 export async function getUser(slug: string) {
-  console.log(slug)
+  console.log(slug);
   const user = await UserModel.getUserBySlug(slug);
   console.log(user);
   return user;

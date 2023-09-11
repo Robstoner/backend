@@ -1,6 +1,7 @@
-import { Document, Model, Schema, model } from "mongoose";
-import bcrypt from "bcrypt";
-import slugify from "../helpers/slugify";
+import { Document, Model, Schema, model } from 'mongoose';
+import bcrypt from 'bcrypt';
+import slugify from '../helpers/slugify';
+import env from '../config/env';
 
 export interface IUser {
   email: string;
@@ -32,11 +33,11 @@ interface IUserModel extends Model<IUserDocument> {
   deleteUserById(id: string): Promise<IUserDocument>;
   updateUserById(
     id: string,
-    values: Record<string, any>
+    values: Record<string, any>,
   ): Promise<IUserDocument>;
   updateUserBySlug(
     slug: string,
-    values: Record<string, any>
+    values: Record<string, any>,
   ): Promise<IUserDocument>;
   deleteUserBySlug(slug: string): Promise<IUserDocument>;
   addTokenByEmail(email: string, token: string): Promise<IUserDocument>;
@@ -64,10 +65,10 @@ const UserSchema: Schema<IUserDocument> = new Schema({
   tokens: { type: [TokenSchema], select: false },
 });
 
-UserSchema.pre("save", async function (next) {
+UserSchema.pre('save', async function (next) {
   const user = this;
 
-  if (!user.isModified("password")) return next();
+  if (!user.isModified('password')) return next();
 
   if (!user.password) return next();
 
@@ -78,10 +79,10 @@ UserSchema.pre("save", async function (next) {
   next();
 });
 
-UserSchema.pre("save", async function (next) {
+UserSchema.pre('save', async function (next) {
   const user = this;
 
-  if (!user.isModified("firstName") && !user.isModified("lastName"))
+  if (!user.isModified('firstName') && !user.isModified('lastName'))
     return next();
 
   user.slug = slugify(user.firstName, user.lastName);
@@ -89,9 +90,9 @@ UserSchema.pre("save", async function (next) {
   next();
 });
 
-UserSchema.pre("findOneAndUpdate", async function (next) {
-  var firstName = this.get("firstName");
-  var lastName = this.get("lastName");
+UserSchema.pre('findOneAndUpdate', async function (next) {
+  var firstName = this.get('firstName');
+  var lastName = this.get('lastName');
   if (!firstName && !lastName) return next();
 
   const query = this.getQuery();
@@ -103,7 +104,7 @@ UserSchema.pre("findOneAndUpdate", async function (next) {
   if (!firstName) firstName = user.firstName;
   if (!lastName) lastName = user.lastName;
 
-  this.set("slug", slugify(firstName, lastName));
+  this.set('slug', slugify(firstName, lastName));
 
   next();
 });
@@ -124,28 +125,28 @@ UserSchema.statics.getUsers = function getUsers() {
 
 UserSchema.statics.getUserByEmail = function getUserByEmail(
   email: string,
-  select?: string
+  select?: string,
 ) {
   return this.findOne({ email }).select(select);
 };
 
 UserSchema.statics.getUserById = function getUserById(
   id: string,
-  select?: string
+  select?: string,
 ) {
   return this.findById(id).select(select);
 };
 
 UserSchema.statics.getUserBySlug = function getUserBySlug(
   slug: string,
-  select?: string
+  select?: string,
 ) {
   console.log(slug);
   return this.findOne({ slug }).select(select);
 };
 
 UserSchema.statics.createUser = function createUser(
-  values: Record<string, any>
+  values: Record<string, any>,
 ) {
   return new this(values).save().then((user) => user.toObject());
 };
@@ -156,14 +157,14 @@ UserSchema.statics.deleteUserById = function deleteUserById(id: string) {
 
 UserSchema.statics.updateUserById = function updateUserById(
   id: string,
-  values: Record<string, any>
+  values: Record<string, any>,
 ) {
   return this.findByIdAndUpdate(id, values);
 };
 
 UserSchema.statics.updateUserBySlug = function updateUserBySlug(
   slug: string,
-  values: Record<string, any>
+  values: Record<string, any>,
 ) {
   return this.findOneAndUpdate({ slug }, values);
 };
@@ -174,11 +175,9 @@ UserSchema.statics.deleteUserBySlug = function deleteUserBySlug(slug: string) {
 
 UserSchema.statics.addTokenByEmail = function addTokenByEmail(
   email: string,
-  token: string
+  token: string,
 ) {
-  const expires = new Date(
-    Date.now() + Number(process.env.JWT_EXPIRATION_TIME) * 1000
-  );
+  const expires = new Date(Date.now() + Number(env.jwtExpirationTime) * 1000);
 
   return this.findOneAndUpdate(
     { email },
@@ -190,8 +189,8 @@ UserSchema.statics.addTokenByEmail = function addTokenByEmail(
           isValid: true,
         },
       },
-    }
+    },
   );
 };
 
-export const UserModel = model<IUserDocument, IUserModel>("User", UserSchema);
+export const UserModel = model<IUserDocument, IUserModel>('User', UserSchema);
