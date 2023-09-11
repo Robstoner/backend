@@ -19,9 +19,9 @@ router.get(
   passport.authenticate('jwt', { session: false }),
   async (req, res) => {
     const { slug } = req.params;
-    console.log(slug);
+
     const user = await getUser(slug);
-    console.log(user);
+
     res.json(user);
   },
 );

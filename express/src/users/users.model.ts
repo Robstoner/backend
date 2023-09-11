@@ -1,9 +1,9 @@
-import { Document, Model, Schema, model } from 'mongoose';
+import { Document, Model, ObjectId, Schema, model } from 'mongoose';
 import bcrypt from 'bcrypt';
-import slugify from '../helpers/slugify';
+import { slugifyUser } from '../helpers/slugify';
 import env from '../config/env';
 
-export interface IUser {
+export interface IUser extends Document {
   email: string;
   slug?: string;
   firstName: string;
@@ -18,30 +18,21 @@ export interface IUser {
     expires: Date;
     isValid: boolean;
   }[];
-}
-
-interface IUserDocument extends IUser, Document {
   checkPassword(password: string): Promise<boolean>;
 }
 
-interface IUserModel extends Model<IUserDocument> {
-  getUsers(): Promise<IUserDocument[]>;
-  getUserByEmail(email: string, select?: string): Promise<IUserDocument>;
-  getUserById(id: string, select?: string): Promise<IUserDocument>;
-  getUserBySlug(slug: string, select?: string): Promise<IUserDocument>;
-  createUser(values: Record<string, any>): Promise<IUserDocument>;
-  deleteUserById(id: string): Promise<IUserDocument>;
-  updateUserById(
-    id: string,
-    values: Record<string, any>,
-  ): Promise<IUserDocument>;
-  updateUserBySlug(
-    slug: string,
-    values: Record<string, any>,
-  ): Promise<IUserDocument>;
-  deleteUserBySlug(slug: string): Promise<IUserDocument>;
-  addTokenByEmail(email: string, token: string): Promise<IUserDocument>;
-  addToken(id: string, token: string): Promise<IUserDocument>;
+interface IUserModel extends Model<IUser> {
+  getUsers(): Promise<IUser[]>;
+  getUserByEmail(email: string, select?: string): Promise<IUser>;
+  getUserById(id: string, select?: string): Promise<IUser>;
+  getUserBySlug(slug: string, select?: string): Promise<IUser>;
+  createUser(values: Record<string, any>): Promise<IUser>;
+  updateUserById(id: string, values: Record<string, any>): Promise<IUser>;
+  updateUserBySlug(slug: string, values: Record<string, any>): Promise<IUser>;
+  deleteUserById(id: string): Promise<IUser>;
+  deleteUserBySlug(slug: string): Promise<IUser>;
+  addTokenByEmail(email: string, token: string): Promise<IUser>;
+  addToken(id: string, token: string): Promise<IUser>;
 }
 
 const TokenSchema = new Schema({
@@ -55,7 +46,7 @@ const AccountSchema = new Schema({
   providerId: { type: String, required: true },
 });
 
-const UserSchema: Schema<IUserDocument> = new Schema({
+const UserSchema: Schema<IUser> = new Schema({
   email: { type: String, required: true, unique: true, lowercase: true },
   slug: { type: String, unique: true, lowercase: true },
   firstName: { type: String, required: true },
@@ -85,7 +76,10 @@ UserSchema.pre('save', async function (next) {
   if (!user.isModified('firstName') && !user.isModified('lastName'))
     return next();
 
-  user.slug = slugify(user.firstName, user.lastName);
+  user.slug = slugifyUser({
+    firstName: user.firstName,
+    lastName: user.lastName,
+  });
 
   next();
 });
@@ -104,7 +98,7 @@ UserSchema.pre('findOneAndUpdate', async function (next) {
   if (!firstName) firstName = user.firstName;
   if (!lastName) lastName = user.lastName;
 
-  this.set('slug', slugify(firstName, lastName));
+  this.set('slug', slugifyUser({ firstName, lastName }));
 
   next();
 });
@@ -131,7 +125,7 @@ UserSchema.statics.getUserByEmail = function getUserByEmail(
 };
 
 UserSchema.statics.getUserById = function getUserById(
-  id: string,
+  id: ObjectId,
   select?: string,
 ) {
   return this.findById(id).select(select);
@@ -141,7 +135,6 @@ UserSchema.statics.getUserBySlug = function getUserBySlug(
   slug: string,
   select?: string,
 ) {
-  console.log(slug);
   return this.findOne({ slug }).select(select);
 };
 
@@ -151,15 +144,11 @@ UserSchema.statics.createUser = function createUser(
   return new this(values).save().then((user) => user.toObject());
 };
 
-UserSchema.statics.deleteUserById = function deleteUserById(id: string) {
-  return this.findByIdAndDelete(id);
-};
-
 UserSchema.statics.updateUserById = function updateUserById(
-  id: string,
+  id: ObjectId,
   values: Record<string, any>,
 ) {
-  return this.findByIdAndUpdate(id, values);
+  return this.findOneAndUpdate({ _id: id }, values);
 };
 
 UserSchema.statics.updateUserBySlug = function updateUserBySlug(
@@ -173,6 +162,9 @@ UserSchema.statics.deleteUserBySlug = function deleteUserBySlug(slug: string) {
   return this.findOneAndDelete({ slug });
 };
 
+UserSchema.statics.deleteUserById = function deleteUserById(id: string) {
+  return this.findByIdAndDelete(id);
+};
 UserSchema.statics.addTokenByEmail = function addTokenByEmail(
   email: string,
   token: string,
@@ -193,4 +185,4 @@ UserSchema.statics.addTokenByEmail = function addTokenByEmail(
   );
 };
 
-export const UserModel = model<IUserDocument, IUserModel>('User', UserSchema);
+export const UserModel = model<IUser, IUserModel>('User', UserSchema);

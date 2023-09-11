@@ -4,12 +4,13 @@ import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import cors from 'cors';
+import env from './config/env';
 import passport from './config/passport';
 import connectDb from './config/db';
 
 import usersRouter from './users/users.controller';
 import authRouter from './users/authentication.controller';
-import env from './config/env';
+import productsRouter from './products/products.controller';
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.get('/', passport.authenticate('jwt', { session: false }), (req, res) => {
 
 app.use('/auth', authRouter);
 app.use('/users', usersRouter);
+app.use('/products', productsRouter);
 
 const server = http.createServer(app);
 
