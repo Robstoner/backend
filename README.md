@@ -10,6 +10,7 @@ Express REST api using best practices and clean code with:
     - GET
     - GET one
     - PUT (update)
+    - DELETE
 
 ## Spring Boot
 Spring Boot REST api using best practices and clean code with:
