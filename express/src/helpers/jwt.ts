@@ -1,7 +1,8 @@
-import jwt from "jsonwebtoken";
+import jwt from 'jsonwebtoken';
+import env from '../config/env';
 
 export function generateToken(email: string) {
-  return jwt.sign({ email }, process.env.JWT_SECRET as string, {
-    expiresIn: Number(process.env.JWT_EXPIRATION_TIME),
+  return jwt.sign({ email }, env.jwtSecret, {
+    expiresIn: Number(env.jwtExpirationTime),
   });
 }
