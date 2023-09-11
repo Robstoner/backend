@@ -36,6 +36,6 @@ Spring Boot REST api using best practices and clean code with:
     - PUT
     - DELETE
     - Relate user to product
-  - OAuth2 Google authentication (Not functional)
+  - OAuth2 Google authentication (Not functional with the rest of the API)
   - S3 File Upload (Not tested)
     
