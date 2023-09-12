@@ -1,4 +1,4 @@
-import { Request, Response, Router } from 'express';
+import { NextFunction, Request, Response, Router } from 'express';
 import {
   createProduct,
   deleteProduct,
@@ -6,77 +6,77 @@ import {
   getProducts,
   updateProduct,
 } from './products.service';
+import passport from '../config/passport.config';
+import validate from '../middleware/validate.middleware';
+import { createProductSchema } from '../validators/product.validator';
+import catchAsync from '../middleware/catchAsync.middleware';
 
 const router = Router();
 
-router.get('/', async (req: Request, res: Response) => {
-  try {
+router.get(
+  '/',
+  catchAsync(async (req: Request, res: Response) => {
     const products = await getProducts();
 
     res.status(200).send(products);
-  } catch (e) {
-    console.log(e);
-    res.status(500).send('Internal Server Error');
-  }
-});
+  }),
+);
 
-router.post('/', async (req: Request, res: Response) => {
-  try {
+router.post(
+  '/',
+  passport.authenticate('jwt', { session: false }),
+  validate(createProductSchema),
+  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const values = req.body;
 
     const product = await createProduct({ values });
 
     res.status(200).send(product);
-  } catch (e) {
-    console.log(e);
-    res.status(500).send('Internal Server Error');
-  }
-});
+  }),
+);
 
-router.get('/:slug', async (req: Request, res: Response) => {
-  try {
+router.get(
+  '/:slug',
+  catchAsync(async (req: Request, res: Response) => {
     const { slug } = req.params;
+    const { full } = req.query as { full?: boolean };
 
-    const product = await getProduct({ slug });
+    const product = await getProduct({ slug, full });
 
     res.status(200).send(product);
-  } catch (e) {
-    console.log(e);
-    res.status(500).send('Internal Server Error');
-  }
-});
+  }),
+);
 
-router.get('/:SKU', async (req: Request, res: Response) => {
-  try {
+router.get(
+  '/:SKU',
+  catchAsync(async (req: Request, res: Response) => {
     const { SKU } = req.params;
 
     const product = await getProduct({ SKU });
 
     res.status(200).send(product);
-  } catch (e) {
-    console.log(e);
-    res.status(500).send('Internal Server Error');
-  }
-});
+  }),
+);
 
-router.put('/:slug', async (req: Request, res: Response) => {
-  try {
+router.put(
+  '/:slug',
+  passport.authenticate('jwt', { session: false }),
+  catchAsync(async (req: Request, res: Response) => {
     const { slug } = req.params;
 
     const values = req.body;
-    console.log(values)
+    console.log(values);
 
     const product = await updateProduct({ slug, values });
 
     res.status(200).send(product);
-  } catch (e) {
-    console.log(e);
-    res.status(500).send('Internal Server Error');
-  }
-});
+  }),
+);
 
-router.delete('/:slug', async (req: Request, res: Response) => {
-  try {
+router.delete(
+  '/:slug',
+  passport.authenticate('jwt', { session: false }),
+  catchAsync(async (req: Request, res: Response) => {
     const { slug } = req.params;
 
     const deleted = await deleteProduct({ slug });
@@ -84,10 +84,7 @@ router.delete('/:slug', async (req: Request, res: Response) => {
     if (deleted) {
       res.status(200).send('Product deleted successfully');
     }
-  } catch (e) {
-    console.log(e);
-    res.status(500).send('Internal Server Error');
-  }
-});
+  }),
+);
 
 export default router;

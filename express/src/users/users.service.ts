@@ -1,3 +1,4 @@
+import { IProduct } from '../products/products.model';
 import { IUser, UserModel } from './users.model';
 
 export async function getUsers(): Promise<IUser[]> {
@@ -10,8 +11,30 @@ export async function getUsers(): Promise<IUser[]> {
   }
 }
 
-export async function getUser(slug: string): Promise<IUser> {
+export async function getUser(
+  slug: string,
+  products?: boolean,
+): Promise<IUser | (IUser & { products: IProduct[] })> {
   try {
+    if (products) {
+      const user = UserModel.aggregate([
+        { $match: { slug } },
+        {
+          $lookup: {
+            from: 'products',
+            localField: '_id',
+            foreignField: 'user',
+            as: 'products',
+          },
+        },
+        {
+          $unset: ['password', 'tokens'],
+        },
+      ]).exec() as unknown as IUser & { products: IProduct[] };
+
+      return user;
+    }
+
     const user = await UserModel.getUserBySlug(slug);
 
     return user;

@@ -4,13 +4,18 @@ import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import cors from 'cors';
-import env from './config/env';
-import passport from './config/passport';
-import connectDb from './config/db';
+
+import env from './config/env.config';
+import passport from './config/passport.config';
+import connectDb from './config/db.config';
+
+import errorHandler from './middleware/errorHandler.middleware';
 
 import usersRouter from './users/users.controller';
 import authRouter from './users/authentication.controller';
 import productsRouter from './products/products.controller';
+import ValidationError from './errors/ValidationError';
+import errorConverter from './middleware/errorConverter.middleware';
 
 const app = express();
 
@@ -29,6 +34,7 @@ app.use(cookieParser());
 app.use(passport.initialize());
 
 app.get('/', passport.authenticate('jwt', { session: false }), (req, res) => {
+  // throw new ValidationError({ message: 'Hello World' });
   res.json({ message: 'Hello World' });
 });
 
@@ -37,6 +43,10 @@ app.get('/', passport.authenticate('jwt', { session: false }), (req, res) => {
 app.use('/auth', authRouter);
 app.use('/users', usersRouter);
 app.use('/products', productsRouter);
+
+app.use(errorConverter);
+
+app.use(errorHandler);
 
 const server = http.createServer(app);
 
