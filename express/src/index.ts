@@ -14,7 +14,6 @@ import errorHandler from './middleware/errorHandler.middleware';
 import usersRouter from './users/users.controller';
 import authRouter from './users/authentication.controller';
 import productsRouter from './products/products.controller';
-import ValidationError from './errors/ValidationError';
 import errorConverter from './middleware/errorConverter.middleware';
 
 const app = express();
