@@ -43,8 +43,9 @@ app.use('/auth', authRouter);
 app.use('/users', usersRouter);
 app.use('/products', productsRouter);
 
-app.use(errorConverter);
+// Error handling
 
+app.use(errorConverter);
 app.use(errorHandler);
 
 const server = http.createServer(app);
