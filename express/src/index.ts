@@ -10,11 +10,11 @@ import passport from './config/passport.config';
 import connectDb from './config/db.config';
 
 import errorHandler from './middleware/errorHandler.middleware';
+import errorConverter from './middleware/errorConverter.middleware';
 
 import usersRouter from './users/users.controller';
 import authRouter from './users/authentication.controller';
 import productsRouter from './products/products.controller';
-import errorConverter from './middleware/errorConverter.middleware';
 
 const app = express();
 
