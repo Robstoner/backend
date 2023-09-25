@@ -12,7 +12,7 @@ import {
   VerifiedCallback,
 } from 'passport-jwt';
 import { JwtPayload } from 'jsonwebtoken';
-import env from './env';
+import env from './env.config';
 
 dotenv.config();
 

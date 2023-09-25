@@ -1,6 +1,7 @@
-import { Document, Model, ObjectId, Schema, model } from 'mongoose';
+import { Document, Model, Schema, Types, model } from 'mongoose';
 import { IUser } from '../users/users.model';
 import { slugifyProduct } from '../helpers/slugify';
+import DatabaseError from '../errors/DatabaseError';
 
 export interface IProduct extends Document {
   name: string;
@@ -26,7 +27,7 @@ interface IProductModel extends Model<IProduct> {
     id,
     select,
   }: {
-    id: ObjectId;
+    id: string;
     select?: string;
   }): Promise<IProduct>;
   getProductBySKU({
@@ -41,7 +42,7 @@ interface IProductModel extends Model<IProduct> {
     id,
     values,
   }: {
-    id: ObjectId;
+    id: string;
     values: Record<string, any>;
   }): Promise<IProduct>;
   updateProductBySlug({
@@ -97,8 +98,8 @@ ProductSchema.statics.getProducts = async function (): Promise<IProduct[]> {
     const products = await this.find();
 
     return products;
-  } catch (error) {
-    throw error;
+  } catch (error: any) {
+    throw new DatabaseError({ message: error.message });
   }
 };
 
@@ -111,22 +112,22 @@ ProductSchema.statics.getProductBySlug = async function ({
     const product = await this.findOne({ slug });
 
     return product;
-  } catch (error) {
-    throw error;
+  } catch (error: any) {
+    throw new DatabaseError({ message: error.message });
   }
 };
 
 ProductSchema.statics.getProductById = async function ({
   id,
 }: {
-  id: ObjectId;
+  id: string;
 }): Promise<IProduct> {
   try {
-    const product = await this.findById(id);
+    const product = await this.findById(new Types.ObjectId(id));
 
     return product;
-  } catch (error) {
-    throw error;
+  } catch (error: any) {
+    throw new DatabaseError({ message: error.message });
   }
 };
 
@@ -139,8 +140,8 @@ ProductSchema.statics.getProductBySKU = async function ({
     const product = await this.findOne({ SKU });
 
     return product;
-  } catch (error) {
-    throw error;
+  } catch (error: any) {
+    throw new DatabaseError({ message: error.message });
   }
 };
 
@@ -153,8 +154,8 @@ ProductSchema.statics.createProduct = async function ({
     const product = await this.create(values);
 
     return product;
-  } catch (error) {
-    throw error;
+  } catch (error: any) {
+    throw new DatabaseError({ message: error.message });
   }
 };
 
@@ -162,15 +163,19 @@ ProductSchema.statics.updateProductById = async function ({
   id,
   values,
 }: {
-  id: ObjectId;
+  id: string;
   values: Record<string, any>;
 }): Promise<IProduct> {
   try {
-    const product = await this.findOneAndUpdate({ _id: id }, values, { new: true });
+    const product = await this.findOneAndUpdate(
+      { _id: new Types.ObjectId(id) },
+      values,
+      { new: true },
+    );
 
     return product;
-  } catch (error) {
-    throw error;
+  } catch (error: any) {
+    throw new DatabaseError({ message: error.message });
   }
 };
 
@@ -182,25 +187,27 @@ ProductSchema.statics.updateProductBySlug = async function ({
   values: Record<string, any>;
 }): Promise<IProduct> {
   try {
-    const product = await this.findOneAndUpdate({ slug }, values, { new: true });
+    const product = await this.findOneAndUpdate({ slug }, values, {
+      new: true,
+    });
 
     return product;
-  } catch (error) {
-    throw error;
+  } catch (error: any) {
+    throw new DatabaseError({ message: error.message });
   }
 };
 
 ProductSchema.statics.deleteProductById = async function ({
   id,
 }: {
-  id: ObjectId;
+  id: string;
 }): Promise<boolean> {
   try {
-    await this.findByIdAndDelete(id);
+    await this.findByIdAndDelete(new Types.ObjectId(id));
 
     return true;
-  } catch (error) {
-    throw error;
+  } catch (error: any) {
+    throw new DatabaseError({ message: error.message });
   }
 };
 
@@ -213,8 +220,8 @@ ProductSchema.statics.deleteProductBySlug = async function ({
     await this.findOneAndDelete({ slug });
 
     return true;
-  } catch (error) {
-    throw error;
+  } catch (error: any) {
+    throw new DatabaseError({ message: error.message });
   }
 };
 

@@ -1,7 +1,7 @@
 import { Document, Model, ObjectId, Schema, model } from 'mongoose';
 import bcrypt from 'bcrypt';
 import { slugifyUser } from '../helpers/slugify';
-import env from '../config/env';
+import env from '../config/env.config';
 
 export interface IUser extends Document {
   email: string;

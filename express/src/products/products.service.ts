@@ -1,30 +1,33 @@
+import APIError from '../errors/APIError';
+import ValidationError from '../errors/ValidationError';
 import { IProduct, ProductModel } from './products.model';
 
 export async function getProducts(): Promise<IProduct[]> {
-  try {
-    const products = await ProductModel.getProducts();
+  const products = await ProductModel.getProducts();
 
-    return products;
-  } catch (error) {
-    throw error;
-  }
+  return products;
 }
-
 export async function getProduct({
   slug,
   SKU,
+  full,
 }: {
   slug?: string;
   SKU?: string;
+  full?: boolean;
 }): Promise<IProduct> {
-  try {
-    if (slug) return await ProductModel.getProductBySlug({ slug });
-    if (SKU) return await ProductModel.getProductBySKU({ SKU });
+  if (slug)
+    return (await ProductModel.getProductBySlug({ slug })).populate({
+      path: full ? 'user' : '',
+      strictPopulate: false,
+    });
+  if (SKU)
+    return (await ProductModel.getProductBySKU({ SKU })).populate({
+      path: full ? 'user' : '',
+      strictPopulate: false,
+    });
 
-    throw new Error('No slug or SKU provided');
-  } catch (error) {
-    throw error;
-  }
+  throw new ValidationError({ message: 'No slug or SKU provided' });
 }
 
 export async function createProduct({
@@ -32,11 +35,11 @@ export async function createProduct({
 }: {
   values: Record<string, any>;
 }): Promise<IProduct> {
-  try {
-    return await ProductModel.createProduct({ values });
-  } catch (error) {
-    throw error;
-  }
+  const product = await ProductModel.createProduct({ values });
+
+  if (!product) throw new APIError({});
+
+  return product;
 }
 
 export async function updateProduct({
@@ -46,11 +49,11 @@ export async function updateProduct({
   slug: string;
   values: Record<string, any>;
 }): Promise<IProduct> {
-  try {
-    return await ProductModel.updateProductBySlug({ slug, values });
-  } catch (error) {
-    throw error;
-  }
+  const product = await ProductModel.updateProductBySlug({ slug, values });
+
+  if (!product) throw new APIError({});
+
+  return product;
 }
 
 export async function deleteProduct({
@@ -58,11 +61,9 @@ export async function deleteProduct({
 }: {
   slug: string;
 }): Promise<boolean> {
-  try {
-    await ProductModel.deleteProductBySlug({ slug });
+  const done = await ProductModel.deleteProductBySlug({ slug });
 
-    return true;
-  } catch (error) {
-    throw error;
-  }
+  if (!done) throw new APIError({});
+
+  return true;
 }

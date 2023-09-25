@@ -1,15 +1,16 @@
-import { Router } from 'express';
+import { Request, Response, Router } from 'express';
 import passport from 'passport';
 import { generateToken } from '../helpers/jwt';
 import { IUser, UserModel } from './users.model';
-import env from '../config/env';
+import env from '../config/env.config';
+import catchAsync from '../middleware/catchAsync.middleware';
 
 const router = Router();
 
 router.get(
   '/logout',
   passport.authenticate('jwt', { session: false }),
-  async (req, res) => {
+  catchAsync(async (req: Request, res: Response) => {
     const user: IUser = req.user as IUser;
 
     const token = req.headers.authorization?.split(' ')[1];
@@ -32,13 +33,13 @@ router.get(
     userObj.save();
 
     res.json({ message: 'User logged out' });
-  },
+  }),
 );
 
 router.get(
   '/logout-all',
   passport.authenticate('jwt', { session: false }),
-  async (req, res) => {
+  catchAsync(async (req: Request, res: Response) => {
     const user: IUser = req.user as IUser;
 
     const userObj = await UserModel.getUserByEmail(user.email, '+tokens');
@@ -54,13 +55,13 @@ router.get(
     userObj.save();
 
     res.json({ message: 'User logged out of all sessions' });
-  },
+  }),
 );
 
 router.post(
   '/signup',
   passport.authenticate('signup', { session: false }),
-  async (req, res) => {
+  catchAsync(async (req: Request, res: Response) => {
     const user: IUser = req.user as IUser;
 
     const userObject = await UserModel.getUserByEmail(user.email, '+tokens');
@@ -76,13 +77,13 @@ router.post(
     userObject.save();
 
     res.json({ token });
-  },
+  }),
 );
 
 router.post(
   '/login',
   passport.authenticate('password', { session: false }),
-  async (req, res) => {
+  catchAsync(async (req: Request, res: Response) => {
     const user: IUser = req.user as IUser;
 
     const userObject = await UserModel.getUserByEmail(user.email, '+tokens');
@@ -98,7 +99,7 @@ router.post(
     userObject.save();
 
     res.json({ token });
-  },
+  }),
 );
 
 router.get(
@@ -115,7 +116,7 @@ router.get(
     session: false,
     failureRedirect: '/login',
   }),
-  async (req, res) => {
+  catchAsync(async (req: Request, res: Response) => {
     const user: IUser = req.user as IUser;
 
     const userObject = await UserModel.getUserByEmail(user.email, '+tokens');
@@ -131,7 +132,7 @@ router.get(
     userObject.save();
 
     res.json({ token });
-  },
+  }),
 );
 
 export default router;
