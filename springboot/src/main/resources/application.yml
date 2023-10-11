@@ -28,6 +28,13 @@ server:
     include-message: always
     include-binding-errors: always
 
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    enabled: true
+
+
 # aws credentials
 # aws:
 #   region: eu-west-1

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.test.realworldexample.config.JwtService;
 import com.test.realworldexample.exceptions.ItemNotFoundException;
+import com.test.realworldexample.user.Provider;
 import com.test.realworldexample.user.Role;
 import com.test.realworldexample.user.User;
 import com.test.realworldexample.user.UserRepository;
@@ -37,6 +38,7 @@ public class AuthenticationService implements AuthenticationServiceI {
 				.email(request.getEmail())
 				.roles(new Role[] { Role.USER })
 				.password(passwordEncoder.encode(request.getPassword()))
+				.provider(Provider.LOCAL)
 				.build();
 
 		userRepository.save(user);

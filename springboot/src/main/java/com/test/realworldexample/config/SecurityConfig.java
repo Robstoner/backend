@@ -28,44 +28,46 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    @Autowired
-    private final JwtAuthenticationFilter jwtAuthFilter;
-    @Autowired
-    private final AuthenticationProvider authenticationProvider;
-    @Autowired
-    private CustomOAuth2UserService oauthUserService;
-    @Autowired
-    private UserService userService;
+        @Autowired
+        private final JwtAuthenticationFilter jwtAuthFilter;
+        @Autowired
+        private final AuthenticationProvider authenticationProvider;
+        @Autowired
+        private CustomOAuth2UserService oauthUserService;
+        @Autowired
+        private UserService userService;
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf((csrf) -> csrf.disable())
-                .authorizeHttpRequests((authorize) -> authorize
-                        .requestMatchers("/auth/**", "/oauth2/**").permitAll()
-                        .anyRequest().authenticated())
-                .sessionManagement((session) -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authenticationProvider(authenticationProvider)
-                .oauth2Login((oauth2) -> oauth2
-                        .userInfoEndpoint((userInfoEndpoint) -> userInfoEndpoint
-                                .userService(oauthUserService))
-                        .successHandler(new AuthenticationSuccessHandler() {
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                http
 
-                            @Override
-                            public void onAuthenticationSuccess(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    Authentication authentication) throws IOException, ServletException {
-                                DefaultOidcUser oauthUser = (DefaultOidcUser) authentication.getPrincipal();
+                        .csrf((csrf) -> csrf.disable())
+                        .authorizeHttpRequests((authorize) -> authorize
+                                .requestMatchers("/auth/**", "/oauth2/**", "/swagger-ui*", "/swagger-ui/**",
+                                                "/swagger-resources/*", "/api-docs/**")
+                                .permitAll()
+                                .anyRequest().authenticated())
+                        .sessionManagement((session) -> session
+                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                        .authenticationProvider(authenticationProvider)
+                        .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                // .oauth2Login((oauth2) -> oauth2
+                // .userInfoEndpoint((userInfoEndpoint) -> userInfoEndpoint
+                // .userService(oauthUserService))
+                // .successHandler(new AuthenticationSuccessHandler() {
 
-                                userService.processOAuthPostLogin(oauthUser.getEmail());
+                // @Override
+                // public void onAuthenticationSuccess(HttpServletRequest request,
+                // HttpServletResponse response,
+                // Authentication authentication) throws IOException, ServletException {
+                // DefaultOidcUser oauthUser = (DefaultOidcUser) authentication.getPrincipal();
 
-                                response.sendRedirect("/");
-                            }
-                        }))
+                // userService.processOAuthPostLogin(oauthUser.getEmail());
 
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                // response.sendRedirect("/");
+                // }
+                // }))
 
-        return http.build();
-    }
+                return http.build();
+        }
 }
